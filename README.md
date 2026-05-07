@@ -25,12 +25,6 @@ claude-opus-4-5
 pip install -r requirements.txt
 ```
 
-For local model inference, install the additional inference dependencies:
-
-```bash
-pip install -r requirements-inference.txt
-```
-
 ## Export Finetune Data
 
 ```bash
