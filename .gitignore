@@ -6,3 +6,5 @@ __pycache__/
 outputs/
 results/
 finetune/exports/
+finetune/runs/
+cka/results/

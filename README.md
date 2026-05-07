@@ -16,7 +16,8 @@ claude-opus-4-5
 
 - `inference/`: general model inference for text Q&A and image-caption rows.
 - `evaluation/`: Opus judge scoring and fixed rubrics.
-- `finetune/`: helper for exporting finetuning splits from Hugging Face.
+- `finetune/`: Qwen and Llama-3.2-11B-Vision post-training scripts.
+- `cka/`: Qwen-only image-conditioned CKA analysis used in the paper.
 - `examples/`: minimal accepted prediction schemas.
 
 ## Install
@@ -28,10 +29,42 @@ pip install -r requirements.txt
 ## Export Finetune Data
 
 ```bash
-python finetune/export_dataset.py \
-  --split train \
-  --output finetune/exports/train.jsonl \
-  --image-dir finetune/exports/images/train
+bash scripts/prepare_matrix_data.sh
+```
+
+This writes `train`, `validation`, and `test` JSONL files under
+`finetune/exports/` and materializes image files under
+`finetune/exports/images/`.
+
+## Post-Train Models
+
+Qwen MATRIX-QPT runs:
+
+```bash
+MODE=text RUN_NAME=qwen-text-sft bash scripts/finetune_qwen.sh
+MODE=vision RUN_NAME=qwen-vision-sft bash scripts/finetune_qwen.sh
+MODE=full RUN_NAME=qwen-full-sft bash scripts/finetune_qwen.sh
+```
+
+Llama MATRIX-LPT runs:
+
+```bash
+MODE=text RUN_NAME=llama32-text-sft bash scripts/finetune_llama32_11b.sh
+MODE=vision RUN_NAME=llama32-vision-sft bash scripts/finetune_llama32_11b.sh
+MODE=full RUN_NAME=llama32-full-sft bash scripts/finetune_llama32_11b.sh
+```
+
+Llama-3.2-11B-Vision is gated on Hugging Face, so run `huggingface-cli login`
+with an account that has accepted the model license before launching Llama
+post-training.
+
+## Reproduce CKA
+
+The representational analysis in the paper is Qwen-only. It uses the base
+Qwen2-VL-7B model and the Qwen text, vision, and full adapters.
+
+```bash
+bash scripts/reproduce_cka.sh
 ```
 
 ## Generate Predictions

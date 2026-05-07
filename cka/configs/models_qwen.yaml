@@ -1,0 +1,15 @@
+base:
+  path: "Qwen/Qwen2-VL-7B"
+  adapter: null
+
+text-sft:
+  path: "Qwen/Qwen2-VL-7B"
+  adapter: "finetune/runs/qwen-text-sft/latest"
+
+vision-sft:
+  path: "Qwen/Qwen2-VL-7B"
+  adapter: "finetune/runs/qwen-vision-sft/latest"
+
+full-sft:
+  path: "Qwen/Qwen2-VL-7B"
+  adapter: "finetune/runs/qwen-full-sft/latest"

@@ -58,6 +58,19 @@ def _first_present(record: Dict[str, Any], keys: List[str]) -> str:
     return ""
 
 
+def _is_image_record(record: Dict[str, Any]) -> bool:
+    question = _first_present(record, ["question", "prompt", "instruction"])
+    task_type = _first_present(record, ["type", "task_type"]).lower()
+    return (
+        task_type in {"vision", "image", "caption"}
+        or bool(_first_present(record, ["image_path", "image_filename", "path", "image_id"]))
+        or record.get("image") is not None
+        or "{image}" in question
+        or "<image>" in question
+        or "<image_placeholder>" in question
+    )
+
+
 class LatestCheckpointCallback(TrainerCallback):
     """Maintains a 'latest' symlink pointing to the most recent checkpoint."""
 
@@ -414,6 +427,8 @@ class TextJsonlDataset(Dataset):
                 if not line:
                     continue
                 record = json.loads(line)
+                if _is_image_record(record):
+                    continue
                 question = record.get(self.question_key) or record.get("prompt") or record.get("instruction")
                 answer = record.get(self.answer_key) or record.get("response") or record.get("output")
                 if not question or not answer:
@@ -912,7 +927,7 @@ def setup_training_args(args):
         learning_rate=args.lr,
         lr_scheduler_type=args.lr_scheduler,
         warmup_steps=args.num_warmup_steps,
-        # warmup_ratio=args.warmup_ratio,
+        warmup_ratio=args.warmup_ratio,
         weight_decay=args.weight_decay,
         gradient_accumulation_steps=args.grad_accum,
         output_dir=output_dir,
@@ -1062,8 +1077,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--run-name", type=str, required=True)
     parser.add_argument("--expdir", type=Path, default=DEFAULT_OUTPUT_DIR)
-    parser.add_argument("--model-name", default="mistralai/Ministral-3-3B-Base-2512")
-    parser.add_argument("--fp8", action="store_true", default=True)
+    parser.add_argument("--model-name", default="Qwen/Qwen2-VL-7B")
+    parser.add_argument("--fp8", "--load-in-8bit", dest="fp8", action="store_true", default=False)
+    parser.add_argument("--no-fp8", "--no-load-in-8bit", dest="fp8", action="store_false")
     parser.add_argument("--lora-rank", type=int, default=8)
     parser.add_argument("--lora-alpha", type=int, default=32)
     parser.add_argument("--lora-dropout", type=float, default=0.05)
@@ -1083,6 +1099,7 @@ if __name__ == "__main__":
     parser.add_argument("--lr", type=float, default=2e-5)
     parser.add_argument("--lr-scheduler", type=str, default="cosine")
     parser.add_argument("--num-warmup-steps", type=int, default=100)
+    parser.add_argument("--warmup-ratio", type=float, default=0.0)
     parser.add_argument("--weight-decay", type=float, default=0.0)
     parser.add_argument("--eval-freq", default=1000, type=int)
     parser.add_argument("--save-freq", default=1000, type=int)

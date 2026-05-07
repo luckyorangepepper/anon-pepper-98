@@ -37,3 +37,25 @@ The export script accepts whatever splits are present on Hugging Face, typically
 - `test`
 
 Use `--dataset` to override the default dataset ID.
+
+## Paper Post-Training Runs
+
+After exporting the data, launch Qwen runs with:
+
+```bash
+MODE=text RUN_NAME=qwen-text-sft bash scripts/finetune_qwen.sh
+MODE=vision RUN_NAME=qwen-vision-sft bash scripts/finetune_qwen.sh
+MODE=full RUN_NAME=qwen-full-sft bash scripts/finetune_qwen.sh
+```
+
+Launch Llama-3.2-11B-Vision runs with:
+
+```bash
+MODE=text RUN_NAME=llama32-text-sft bash scripts/finetune_llama32_11b.sh
+MODE=vision RUN_NAME=llama32-vision-sft bash scripts/finetune_llama32_11b.sh
+MODE=full RUN_NAME=llama32-full-sft bash scripts/finetune_llama32_11b.sh
+```
+
+The scripts write LoRA checkpoints under `finetune/runs/<run-name>/`. The CKA
+config expects the Qwen adapters at `qwen-text-sft`, `qwen-vision-sft`, and
+`qwen-full-sft`; edit `cka/configs/models_qwen.yaml` if you use different names.
