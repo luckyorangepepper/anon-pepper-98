@@ -31,7 +31,7 @@ ANTHROPIC_API_KEY=... python evaluate.py \
   --summary-csv outputs/model_summary.csv
 ```
 
-The input are JSONL files. Text rows should include `question`, `answer`,
+The input can be JSONL or JSON. Text rows should include `question`, `answer`,
 and `model_answer`. Image-caption rows may instead use `reference_caption` and
 `predicted_caption`. Optional `type`, `kind`, `image_path`, and modality fields
 are used by `--rubric auto` to choose the task-specific rubric.
