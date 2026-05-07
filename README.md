@@ -1,6 +1,6 @@
 # MATRIX Evaluation Artifact
 
-Minimal evaluation code for the anonymized MATRIX dataset artifact.
+Minimal inference and evaluation code for the anonymized MATRIX dataset artifact.
 
 Dataset:
 
@@ -14,6 +14,7 @@ Judge:
 claude-opus-4-5
 ```
 
+- `inference/`: general model inference for text Q&A and image-caption rows.
 - `evaluation/`: Opus judge scoring and fixed rubrics.
 - `finetune/`: helper for exporting finetuning splits from Hugging Face.
 - `examples/`: minimal accepted prediction schemas.
@@ -24,6 +25,12 @@ claude-opus-4-5
 pip install -r requirements.txt
 ```
 
+For local model inference, install the additional inference dependencies:
+
+```bash
+pip install -r requirements-inference.txt
+```
+
 ## Export Finetune Data
 
 ```bash
@@ -31,6 +38,63 @@ python finetune/export_dataset.py \
   --split train \
   --output finetune/exports/train.jsonl \
   --image-dir finetune/exports/images/train
+```
+
+## Generate Predictions
+
+The evaluator scores model outputs; it does not call the model itself. Use
+`inference/generate_predictions.py` to produce the prediction JSONL first. The
+script accepts a Hugging Face model ID, a local full-model checkpoint, or a LoRA
+adapter directory with `adapter_config.json`.
+
+Text Q&A / hypothesis rows:
+
+```bash
+python inference/generate_predictions.py \
+  --model-path mistralai/Ministral-3-8B-Instruct-2512 \
+  --dataset luckyorangepepper/anon-pepper-72 \
+  --split test \
+  --task text \
+  --output-file outputs/text_predictions.jsonl \
+  --max-new-tokens 256
+```
+
+Image-caption rows:
+
+```bash
+python inference/generate_predictions.py \
+  --model-path Qwen/Qwen2-VL-7B-Instruct \
+  --dataset luckyorangepepper/anon-pepper-72 \
+  --split test \
+  --task caption \
+  --output-file outputs/image_predictions.jsonl \
+  --max-new-tokens 128
+```
+
+For exported/local JSONL files with relative image paths, add `--input-file` and
+`--image-root`:
+
+```bash
+python inference/generate_predictions.py \
+  --model-path /path/to/adapter-or-model \
+  --base-model Qwen/Qwen2-VL-7B \
+  --input-file finetune/exports/test.jsonl \
+  --image-root finetune/exports/images/test \
+  --task caption \
+  --output-file outputs/local_image_predictions.jsonl
+```
+
+Run inference and Opus scoring in one command:
+
+```bash
+ANTHROPIC_API_KEY=... python run_and_score.py \
+  --model-path Qwen/Qwen2-VL-7B-Instruct \
+  --dataset luckyorangepepper/anon-pepper-72 \
+  --split test \
+  --task auto \
+  --predictions-file outputs/model_predictions.jsonl \
+  --scores-file outputs/model_scores.jsonl \
+  --summary-csv outputs/model_summary.csv
 ```
 
 ## Score Text Outputs
